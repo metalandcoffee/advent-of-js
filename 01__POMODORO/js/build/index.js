@@ -27,26 +27,27 @@ document.addEventListener("DOMContentLoaded", function () {
       btnEl.innerText = 'start' === btnText ? 'stop' : 'start';
     },
     countdownStart: function () {
-      // const currentTime: Date = new Date();
-      // let expirationTime = addMinutes(currentTime, this.settings.minutesLimit);
-      // expirationTime = addSeconds(expirationTime, this.settings.minutesLimit);
-      // console.log(format(currentTime, 'hh:mm:ss'));
-      // console.log(format(expirationTime, 'hh:mm:ss'));
       let currentMin = this.settings.minutesLimit;
       let currentSec = this.settings.secondsLimit;
       function timerCallback() {
         const mins = document.getElementById('minutes');
         const secs = document.getElementById('seconds');
-        // Type guard.
-        if (!secs || !mins) {
+
+        // Type guard and current time check.
+        if (!secs || !mins || !currentMin && !currentSec) {
+          clearInterval(timer);
           return;
         }
         const minsEl = mins;
         const secsEl = secs;
+
+        // Decrement.
         currentSec = 0 === currentSec ? 59 : --currentSec;
         if (59 === currentSec) {
-          currentSec = 0 === currentSec ? 59 : --currentSec;
+          currentMin = 0 === currentMin ? 59 : --currentMin;
         }
+
+        // Render updated values.
         secsEl.value = currentSec.toString().padStart(2, '0');
         minsEl.value = currentMin.toString().padStart(2, '0');
         console.log(`${currentMin.toString().padStart(2, '0')}:${currentSec.toString().padStart(2, '0')}`);

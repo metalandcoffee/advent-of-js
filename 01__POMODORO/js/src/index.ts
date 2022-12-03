@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener( 'DOMContentLoaded', function () {
 	const SECOND_IN_MILLISECONDS: number = 1000;
 
 	const PomodoroTimer = {
@@ -7,13 +7,13 @@ document.addEventListener("DOMContentLoaded", function () {
 			secondsLimit: 0,
 		},
 		init: function (): void {
-			document.addEventListener('click', this.toggleButton);
+			document.addEventListener( 'click', this.toggleButton );
 			this.countdownStart();
 		},
 		toggleButton: function (): void {
-			const btn = document.getElementById('start');
+			const btn = document.getElementById( 'start' );
 			// Type guard. Check if null or undefined. Abort if so.
-			if (!btn) {
+			if ( ! btn ) {
 				return;
 			}
 
@@ -23,41 +23,43 @@ document.addEventListener("DOMContentLoaded", function () {
 			btnEl.innerText = 'start' === btnText ? 'stop' : 'start';
 		},
 		countdownStart: function (): void {
-			// const currentTime: Date = new Date();
-			// let expirationTime = addMinutes(currentTime, this.settings.minutesLimit);
-			// expirationTime = addSeconds(expirationTime, this.settings.minutesLimit);
-			// console.log(format(currentTime, 'hh:mm:ss'));
-			// console.log(format(expirationTime, 'hh:mm:ss'));
 			let currentMin = this.settings.minutesLimit;
 			let currentSec = this.settings.secondsLimit;
 
 			function timerCallback() {
-				const mins = document.getElementById('minutes');
-				const secs = document.getElementById('seconds');
-				// Type guard.
-				if (!secs || !mins) {
+				const mins = document.getElementById( 'minutes' );
+				const secs = document.getElementById( 'seconds' );
+
+				// Type guard and current time check.
+				if ( ! secs || ! mins || ( ! currentMin && ! currentSec ) ) {
+					clearInterval( timer );
 					return;
 				}
 				const minsEl = mins as HTMLInputElement;
 				const secsEl = secs as HTMLInputElement;
 
+				// Decrement.
 				currentSec = 0 === currentSec ? 59 : --currentSec;
-				if (59 === currentSec) {
-					currentSec = 0 === currentSec ? 59 : --currentSec;
+				if ( 59 === currentSec ) {
+					currentMin = 0 === currentMin ? 59 : --currentMin;
 				}
 
-
-				secsEl.value = currentSec.toString().padStart(2, '0');
-				minsEl.value = currentMin.toString().padStart(2, '0');
-				console.log(`${currentMin.toString().padStart(2, '0')}:${currentSec.toString().padStart(2, '0')}`);
+				// Render updated values.
+				secsEl.value = currentSec.toString().padStart( 2, '0' );
+				minsEl.value = currentMin.toString().padStart( 2, '0' );
+				console.log(
+					`${ currentMin.toString().padStart( 2, '0' ) }:${ currentSec
+						.toString()
+						.padStart( 2, '0' ) }`
+				);
 			}
 
 			const timer = setInterval(
-				timerCallback.bind(this),
+				timerCallback.bind( this ),
 				SECOND_IN_MILLISECONDS
 			);
-		}
+		},
 	};
 
 	PomodoroTimer.init();
-});
+} );
