@@ -1,14 +1,19 @@
+import { format } from 'date-fns';
+
 document.addEventListener( 'DOMContentLoaded', function () {
 	const SECOND_IN_MILLISECONDS: number = 1000;
 
 	const PomodoroTimer = {
 		settings: {
-			minutesLimit: 15,
+			minutesLimit: 1,
 			secondsLimit: 0,
+			timer: null,
 		},
 		init: function (): void {
-			document.addEventListener( 'click', this.toggleButton );
-			this.countdownStart();
+			document.addEventListener(
+				'click',
+				this.toggleButton.bind( this )
+			);
 		},
 		toggleButton: function (): void {
 			const btn = document.getElementById( 'start' );
@@ -20,9 +25,18 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			// Typecast as specific HTML element versus specifying the type.
 			const btnEl = btn as HTMLButtonElement;
 			let btnText: string | undefined = btnEl.innerText.toLowerCase();
-			btnEl.innerText = 'start' === btnText ? 'stop' : 'start';
+
+			if ( 'start' === btnText ) {
+				this.countdownStart();
+				btnEl.innerText = 'stop';
+			} else {
+				// Stop countdown and reset values.
+				clearInterval( this.settings.timer );
+				btnEl.innerText = 'start';
+			}
 		},
 		countdownStart: function (): void {
+			console.log( format( new Date(), 'hh:mm:ss' ) );
 			let currentMin = this.settings.minutesLimit;
 			let currentSec = this.settings.secondsLimit;
 
@@ -32,7 +46,8 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 				// Type guard and current time check.
 				if ( ! secs || ! mins || ( ! currentMin && ! currentSec ) ) {
-					clearInterval( timer );
+					console.log( format( new Date(), 'hh:mm:ss' ) );
+					clearInterval( this.settings.timer );
 					return;
 				}
 				const minsEl = mins as HTMLInputElement;
@@ -54,7 +69,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				);
 			}
 
-			const timer = setInterval(
+			this.settings.timer = setInterval(
 				timerCallback.bind( this ),
 				SECOND_IN_MILLISECONDS
 			);
