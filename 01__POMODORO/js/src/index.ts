@@ -1,72 +1,84 @@
-import { format } from 'date-fns';
+import { addMinutes, setMilliseconds, intervalToDuration } from 'date-fns';
 
 document.addEventListener( 'DOMContentLoaded', function () {
 	const SECOND_IN_MILLISECONDS: number = 1000;
 
 	const PomodoroTimer = {
 		settings: {
-			minutesLimit: 1,
+			minutesLimit: 15,
 			secondsLimit: 0,
 			timer: null,
 		},
 		init: function (): void {
-			document.addEventListener(
-				'click',
-				this.toggleButton.bind( this )
-			);
-		},
-		toggleButton: function (): void {
 			const btn = document.getElementById( 'start' );
 			// Type guard. Check if null or undefined. Abort if so.
 			if ( ! btn ) {
 				return;
 			}
-
-			// Typecast as specific HTML element versus specifying the type.
 			const btnEl = btn as HTMLButtonElement;
-			let btnText: string | undefined = btnEl.innerText.toLowerCase();
+			btnEl.addEventListener(
+				'click',
+				this.toggleButton.bind( {countdownStart: this.countdownStart, btnEl} )
+			);
+
+
+			const settingsBtn = document.querySelector( '.settings' );
+			// Type guard. Check if null or undefined. Abort if so.
+			if ( ! settingsBtn ) {
+				return;
+			}
+			const settingsBtnEl = settingsBtn as HTMLButtonElement;
+			settingsBtnEl.addEventListener(
+				'click',
+				this.editTimer.bind( this )
+			);
+		},
+		toggleButton: function (): void {
+			let btnText: string | undefined = this.btnEl.innerText.toLowerCase();
 
 			if ( 'start' === btnText ) {
 				this.countdownStart();
-				btnEl.innerText = 'stop';
+				this.btnEl.innerText = 'stop';
 			} else {
 				// Stop countdown and reset values.
 				clearInterval( this.settings.timer );
-				btnEl.innerText = 'start';
+				this.btnEl.innerText = 'start';
 			}
 		},
 		countdownStart: function (): void {
-			console.log( format( new Date(), 'hh:mm:ss' ) );
-			let currentMin = this.settings.minutesLimit;
-			let currentSec = this.settings.secondsLimit;
+			let currentTime = new Date();
+			currentTime = setMilliseconds(currentTime, 0);
+			const endTime = addMinutes(currentTime, this.settings.minutesLimit);
 
+			const mins = document.getElementById( 'minutes' );
+			const secs = document.getElementById( 'seconds' );
+
+			// Type guard and current time check.
+			if ( ! secs || ! mins ) {
+				return;
+			}
+			const minsEl = mins as HTMLInputElement;
+			const secsEl = secs as HTMLInputElement;
+			
 			function timerCallback() {
-				const mins = document.getElementById( 'minutes' );
-				const secs = document.getElementById( 'seconds' );
-
-				// Type guard and current time check.
-				if ( ! secs || ! mins || ( ! currentMin && ! currentSec ) ) {
-					console.log( format( new Date(), 'hh:mm:ss' ) );
-					clearInterval( this.settings.timer );
-					return;
-				}
-				const minsEl = mins as HTMLInputElement;
-				const secsEl = secs as HTMLInputElement;
-
-				// Decrement.
-				currentSec = 0 === currentSec ? 59 : --currentSec;
-				if ( 59 === currentSec ) {
-					currentMin = 0 === currentMin ? 59 : --currentMin;
-				}
-
+				currentTime = new Date();
+				currentTime = setMilliseconds(currentTime, 0);
+				
+				let remainingTime = intervalToDuration({
+					start: currentTime,
+					end: endTime
+				});
+				
+				const remainingMins = remainingTime.minutes as number;
+				const remainingSecs = remainingTime.seconds as number; 
+			
 				// Render updated values.
-				secsEl.value = currentSec.toString().padStart( 2, '0' );
-				minsEl.value = currentMin.toString().padStart( 2, '0' );
-				console.log(
-					`${ currentMin.toString().padStart( 2, '0' ) }:${ currentSec
-						.toString()
-						.padStart( 2, '0' ) }`
-				);
+				minsEl.value = remainingMins.toString().padStart( 2, '0' );
+				secsEl.value = remainingSecs.toString().padStart( 2, '0' );
+
+				if ( ! remainingTime.minutes && ! remainingTime.seconds ) {
+					clearInterval( this.settings.timer );
+				}
 			}
 
 			this.settings.timer = setInterval(
@@ -74,6 +86,21 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				SECOND_IN_MILLISECONDS
 			);
 		},
+		editTimer: function() {
+			console.log('editTimer');
+			const mins = document.getElementById( 'minutes' );
+			const secs = document.getElementById( 'seconds' );
+
+			// Type guard and current time check.
+			if ( ! secs || ! mins ) {
+				return;
+			}
+			const minsEl = mins as HTMLInputElement;
+			const secsEl = secs as HTMLInputElement;
+
+			minsEl.removeAttribute('disabled');
+			secsEl.removeAttribute('disabled');
+		}
 	};
 
 	PomodoroTimer.init();
